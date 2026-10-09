@@ -57,6 +57,19 @@ BODYMAXXING PROJECT UPDATES & CHANGELOG
 - Achieved 100% test coverage with pytest-asyncio in `tests/test_tracking.py`.
 ======================================================================
 
+[2026-10-10] Feature: Pydantic AI Agent & Regime Generation (Branch: feature/pydantic-ai-agent)
+- Implemented `backend/agent.py`:
+  * Enforced structured output JSON schema compliance via `RegimePlanResponse`.
+  * Configured strict retry budget (`retries=2`) to prevent runaway token consumption during schema validation.
+  * System prompt designed using imperative tone, negative constraints ("Do NOT..."), and structural XML tagging (`<user_profile>`, `<metabolic_baseline>`, `<goals>`).
+  * Seamless support for `output_type`/`result_type` and test harness model overriding.
+- Implemented `backend/routers/regime.py`:
+  * POST `/api/regime/generate`: Calculates metabolic baseline and runs agent to generate training splits and macro targets.
+  * Handled gateway error resilience with proper HTTP 502 propagation.
+- Achieved 85.0% test coverage with pytest-asyncio in `tests/test_agent.py`.
+======================================================================
+
+
 
 
 
