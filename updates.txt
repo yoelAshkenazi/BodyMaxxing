@@ -102,6 +102,18 @@ BODYMAXXING PROJECT UPDATES & CHANGELOG
 - Comprehensive test suite: 44 tests passing with 96.37% overall backend test coverage.
 ======================================================================
 
+[2026-10-10] Fix: Local Developer Experience & Flet Entrypoint (Branch: feature/local-runtime-fixes)
+- Resolved Step 2 (Database connection failure on local startup):
+  * Updated `backend/database.py` to default `DATABASE_URL` to local asynchronous SQLite (`sqlite+aiosqlite:///./fitness_db.sqlite`) when no external PostgreSQL server is provided.
+  * Preserved full PostgreSQL asyncpg support when `DATABASE_URL` is set via environment or Docker containers.
+  * Added `.env.example` documenting all configuration keys.
+- Resolved Step 3 (Flet ModuleNotFoundError on direct invocation):
+  * Configured `frontend/main.py` with dynamic `sys.path` bootstrapping so `flet run frontend/main.py` resolves packages correctly regardless of invocation cwd.
+  * Added fallback import resolution across `frontend/views/dashboard.py` and `frontend/views/settings.py` for both package and direct script execution modes.
+- Verified: Both `uvicorn backend.main:app --reload --port 8000` and `flet run frontend/main.py` now run cleanly and pass all 44 unit and integration tests.
+======================================================================
+
+
 
 
 

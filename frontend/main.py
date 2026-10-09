@@ -1,10 +1,26 @@
-"""Flet application root managing adaptive routing, system theming, and Pyodide WebAssembly compatibility."""
+import sys
+from pathlib import Path
+
+# Ensure workspace root and frontend folder are discoverable in sys.path
+_current_dir = Path(__file__).resolve().parent
+_workspace_root = _current_dir.parent
+if str(_workspace_root) not in sys.path:
+    sys.path.insert(0, str(_workspace_root))
+if str(_current_dir) not in sys.path:
+    sys.path.insert(0, str(_current_dir))
 
 import flet as ft
-from frontend.components.theme import get_app_theme
-from frontend.views.dashboard import dashboard_view
-from frontend.views.login import login_view
-from frontend.views.settings import settings_view
+
+try:
+    from frontend.components.theme import get_app_theme
+    from frontend.views.dashboard import dashboard_view
+    from frontend.views.login import login_view
+    from frontend.views.settings import settings_view
+except ModuleNotFoundError:
+    from components.theme import get_app_theme
+    from views.dashboard import dashboard_view
+    from views.login import login_view
+    from views.settings import settings_view
 
 
 def main(page: ft.Page) -> None:

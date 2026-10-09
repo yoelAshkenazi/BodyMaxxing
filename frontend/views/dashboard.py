@@ -4,7 +4,10 @@ from typing import List
 import flet as ft
 import httpx
 
-from frontend.components.navigation import get_adaptive_nav
+try:
+    from frontend.components.navigation import get_adaptive_nav
+except ModuleNotFoundError:
+    from components.navigation import get_adaptive_nav
 
 API_BASE_URL = "http://localhost:8000"
 
