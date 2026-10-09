@@ -9,5 +9,17 @@ BODYMAXXING PROJECT UPDATES & CHANGELOG
 - Reviewed architectural manifests:
   * backend.md: Asynchronous FastAPI architecture, SQLModel, asyncpg, Alembic, Pydantic AI agent, BOLA security.
   * frontend.md: Adaptive Flet interfaces (ResponsiveRow, ThemeMode.SYSTEM, Pyodide compatibility).
-  * modules.json: Modular project tree, Trunk-Based Development, >=80% test coverage requirement with pytest-asyncio.
 ======================================================================
+
+[2026-10-10] Feature: Models & Physiological Calculations (Branch: feature/models-and-calculations)
+- Implemented `backend/models.py` using SQLModel & Pydantic v2:
+  * Unified relational models: `User` and `WorkoutLog`.
+  * Enforced strict Pydantic AI structured output contract: `RegimePlanResponse`.
+  * Implemented typed API DTOs with input constraints (`UserRegisterRequest`, `UserUpdateRequest`, `WorkoutLogCreate`, etc.).
+- Implemented `backend/calculations.py` isolating domain physiological math:
+  * Katch-McArdle Formula for known body composition and Mifflin-St Jeor Equation for general populations.
+  * Composite 1RM estimations averaging Epley and Brzycki equations.
+  * Statistical least-squares regression trendline modeling for strength forecasts.
+- Achieved 100% test coverage with pytest-asyncio across 17 test cases.
+======================================================================
+
