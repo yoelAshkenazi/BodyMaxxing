@@ -47,5 +47,16 @@ BODYMAXXING PROJECT UPDATES & CHANGELOG
 - Achieved 95.6% test coverage with pytest-asyncio in `tests/test_auth_and_security.py`.
 ======================================================================
 
+[2026-10-10] Feature: Submaximal Lift Tracking & Strength Forecasts (Branch: feature/tracking-and-metrics)
+- Implemented `backend/routers/tracking.py`:
+  * POST `/api/tracking/lifts`: Automatically computes composite 1RM via averaged Epley & Brzycki equations and records lift with user-id binding.
+  * GET `/api/tracking/history`: Filterable by exercise name, bounded by pagination, strictly filtered by current user.
+  * GET `/api/tracking/forecast`: Computes chronological progression slope (kg/week) and calculates 4-week projected strength.
+  * DELETE `/api/tracking/lifts/{lift_id}`: Validates ownership before record deletion.
+  * Strict BOLA validation: All operations are implicitly scoped to the calling user's JWT identity.
+- Achieved 100% test coverage with pytest-asyncio in `tests/test_tracking.py`.
+======================================================================
+
+
 
 
