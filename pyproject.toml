@@ -34,6 +34,7 @@ addopts = "--strict-markers -v"
 
 [tool.coverage.run]
 source = ["backend"]
+concurrency = ["greenlet", "thread"]
 omit = ["*/tests/*", "*/__pycache__/*"]
 
 [tool.coverage.report]

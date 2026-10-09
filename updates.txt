@@ -32,4 +32,20 @@ BODYMAXXING PROJECT UPDATES & CHANGELOG
 - Achieved 100% test coverage with pytest-asyncio in `tests/test_database.py`.
 ======================================================================
 
+[2026-10-10] Feature: Async JWT Auth & BOLA Protection (Branch: feature/async-jwt-auth)
+- Implemented `backend/security.py`:
+  * Argon2id hashing for user passwords and persistent refresh tokens.
+  * Short-lived JWT access tokens (15m expiry) and rotating refresh tokens (7d expiry) with unique `jti` anti-collision identifiers.
+  * OAuth2PasswordBearer dependency and strict JWT decoding / claim validation.
+  * User retrieval dependency enforcing implicit identity scoping.
+- Implemented `backend/routers/auth.py`:
+  * Endpoints `/api/auth/register`, `/api/auth/login`, and `/api/auth/refresh`.
+  * Comprehensive refresh token rotation mechanism with automatic revocation upon detecting reuse/replay attacks.
+- Implemented `backend/routers/users.py`:
+  * Endpoints `/api/users/me` (GET and PATCH).
+  * Strict Broken Object Level Authorization (BOLA) mitigation: queries are unconditionally locked to the authenticated caller's identity extracted from the JWT.
+- Achieved 95.6% test coverage with pytest-asyncio in `tests/test_auth_and_security.py`.
+======================================================================
+
+
 
