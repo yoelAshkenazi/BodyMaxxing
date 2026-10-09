@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bodymaxxing"
+version = "0.1.0"
+description = "Production-grade, cross-platform health and fitness tracking application"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "gunicorn>=22.0.0",
+    "sqlmodel>=0.0.21",
+    "pydantic>=2.8.0",
+    "alembic>=1.13.0",
+    "asyncpg>=0.29.0",
+    "aiosqlite>=0.20.0",
+    "argon2-cffi>=23.1.0",
+    "pyjwt>=2.9.0",
+    "python-multipart>=0.0.9",
+    "slowapi>=0.1.9",
+    "pydantic-ai>=0.0.20",
+    "flet>=0.23.0"
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--strict-markers -v"
+
+[tool.coverage.run]
+source = ["backend"]
+omit = ["*/tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80
