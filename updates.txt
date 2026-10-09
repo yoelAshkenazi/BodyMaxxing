@@ -20,6 +20,16 @@ BODYMAXXING PROJECT UPDATES & CHANGELOG
   * Katch-McArdle Formula for known body composition and Mifflin-St Jeor Equation for general populations.
   * Composite 1RM estimations averaging Epley and Brzycki equations.
   * Statistical least-squares regression trendline modeling for strength forecasts.
-- Achieved 100% test coverage with pytest-asyncio across 17 test cases.
 ======================================================================
+
+[2026-10-10] Feature: Async Database & Session Injection (Branch: feature/async-database-session)
+- Implemented `backend/database.py` with purely asynchronous SQLAlchemy engine and connection pooling:
+  * PostgreSQL asyncpg pool with `pool_size=20, max_overflow=10, pool_pre_ping=True`.
+  * Fallback to SQLite async driver for unit testing and local developer workflows.
+  * Dependency injection `get_async_session` backed by an `@asynccontextmanager` context manager ensuring explicit commits on success and immediate rollback on exceptions.
+  * Async schema initialization helper `init_db`.
+- Installed `greenlet` dependency for SQLAlchemy asyncio support.
+- Achieved 100% test coverage with pytest-asyncio in `tests/test_database.py`.
+======================================================================
+
 
