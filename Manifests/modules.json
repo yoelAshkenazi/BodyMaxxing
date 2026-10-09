@@ -1,0 +1,32 @@
+{
+    "project_tree": {
+        "backend": {
+            "main.py": "FastAPI application entry point. Configures CORS, initializes the SlowAPI rate limiter, and mounts the asynchronous API routers.",
+            "database.py": "Defines the PostgreSQL asynchronous engine using asyncpg. Contains the `get_async_session` dependency utilizing an asynccontextmanager to prevent connection pool leaks.",
+            "models.py": "SQLModel definitions bridging the relational database and Pydantic schemas. Includes User, WorkoutLog, and structured AI response models.",
+            "security.py": "Implementation of OAuth2PasswordBearer. Contains logic for short-lived JWT generation, Argon2 hashing for passwords and refresh tokens, and token rotation mechanics.",
+            "calculations.py": "Pure domain logic. Implements Mifflin-St Jeor and Katch-McArdle metabolic formulas, Epley/Brzycki 1RM estimates, and statistical trendline calculations.",
+            "agent.py": "Instantiates the Pydantic AI agent. Defines the strict JSON schemas, retry budgets, and validation callbacks for generating personalized training regimens.",
+            "routers": {
+                "auth.py": "Endpoints for user registration, login, and refresh token exchange.",
+                "users.py": "Endpoints for managing anthropometric data and free-text goals. Protected by JWT dependencies.",
+                "tracking.py": "Endpoints for logging submaximal lifts, retrieving historical 1RM data, and requesting trend forecasts.",
+                "regime.py": "Endpoints that trigger the Pydantic AI agent to generate or update the user's plan based on their current metrics."
+            }
+        },
+        "frontend": {
+            "main.py": "The Flet application root. Initializes routing, configures ThemeMode.SYSTEM, and establishes the primary Page layout.",
+            "views": {
+                "login.py": "Authentication interface. Captures credentials and stores the resulting JWT securely.",
+                "dashboard.py": "The primary tracking interface. Utilizes ResponsiveRow for layout and LineChart controls to display 1RM progressions.",
+                "settings.py": "Data entry forms for capturing age, weight, height, body fat percentage, and natural language goals."
+            },
+            "components": {
+                "navigation.py": "Adaptive navigation logic. Returns a NavigationBar for mobile viewports and a NavigationRail for desktop widths.",
+                "theme.py": "Definitions for the Material Design 3 ColorScheme and typography."
+            }
+        }
+    },
+    "git_instructions": "Strict adherence to Trunk-Based Development is required. You must commit each discrete feature in a separate, isolated branch (e.g., `feature/flet-dashboard-ui`, `feature/async-jwt-auth`). You must implement tests using `pytest-asyncio` and achieve a minimum of 80% coverage. Tests must pass locally before any code is pushed or merged to the main branch. Rebase branches frequently to avoid polluted merge histories.",
+    "ide_system_prompt": "You are a Principal Software Engineer and Full-Stack Systems Architect specializing in Python. Your technology stack consists strictly of FastAPI, SQLModel, Pydantic AI, and Flet. You must follow the exact file structure outlined in the project tree. Backend code must be fully asynchronous; never use synchronous database calls that block the event loop. Enforce OWASP API Security Top 10 mitigations, specifically verifying user ownership (BOLA protection) on all database queries. Utilize Pydantic AI for all LLM interactions, enforcing `result_type` schemas and handling `ValidationError` retries gracefully. For the frontend, build adaptive, cross-platform layouts using Flet's `ResponsiveRow`. Use negative constraints and imperative language in all generated system prompts. Do not hallucinate external libraries."
+}
