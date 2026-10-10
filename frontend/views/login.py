@@ -3,6 +3,11 @@
 import flet as ft
 import httpx
 
+try:
+    from frontend.components.zoom import create_zoom_controls, get_current_zoom
+except ModuleNotFoundError:
+    from components.zoom import create_zoom_controls, get_current_zoom
+
 API_BASE_URL = "http://localhost:8000"
 
 
@@ -100,8 +105,46 @@ def login_view(page: ft.Page) -> ft.View:
                 data = res.json()
                 token = data.get("access_token")
                 if token:
-                    page.client_storage.set("token", token)
-                    page.go("/dashboard")
+                    if hasattr(page.client_storage, "set_async"):
+                        await page.client_storage.set_async("token", token)
+                    else:
+                        page.client_storage.set("token", token)
+
+                    # Fetch user profile to ensure settings is immediately pre-filled
+                    try:
+                        headers = {"Authorization": f"Bearer {token}"}
+                        me_res = await client.get(f"{API_BASE_URL}/api/users/me", headers=headers)
+                        if me_res.status_code == 200:
+                            user_data = me_res.json()
+                            if hasattr(page.client_storage, "set_async"):
+                                await page.client_storage.set_async("user_profile", user_data)
+                            else:
+                                page.client_storage.set("user_profile", user_data)
+                    except Exception:
+                        if is_register_mode:
+                            reg_info = {
+                                "email": email,
+                                "age": int(age_field.value or 25),
+                                "gender": "male",
+                                "height_cm": float(height_field.value or 180.0),
+                                "weight_kg": float(weight_field.value or 80.0),
+                                "free_text_goals": goals_field.value or "Strength and hypertrophy",
+                            }
+                            page.client_storage.set("user_profile", reg_info)
+
+                    # For new user or user without active plan, direct to settings for plan generation
+                    if is_register_mode:
+                        if hasattr(page.client_storage, "set_async"):
+                            await page.client_storage.set_async("is_new_user", True)
+                        else:
+                            page.client_storage.set("is_new_user", True)
+                        page.go("/settings")
+                    else:
+                        has_plan = page.client_storage.get("has_active_plan")
+                        if not has_plan:
+                            page.go("/settings")
+                        else:
+                            page.go("/dashboard")
                     return
             else:
                 detail = res.json().get("detail", "Authentication failed.")
@@ -119,6 +162,7 @@ def login_view(page: ft.Page) -> ft.View:
     form_card = ft.Container(
         content=ft.Column(
             controls=[
+                ft.Row([create_zoom_controls(page)], alignment=ft.MainAxisAlignment.END),
                 ft.Row([ft.Icon(ft.icons.FITNESS_CENTER, color=ft.colors.INDIGO, size=36), title_text], alignment=ft.MainAxisAlignment.CENTER),
                 subtitle_text,
                 ft.Divider(height=10, color=ft.colors.TRANSPARENT),
@@ -141,18 +185,21 @@ def login_view(page: ft.Page) -> ft.View:
         border=ft.border.all(1, ft.colors.OUTLINE_VARIANT),
     )
 
+    current_scale = get_current_zoom(page)
+    extra_bottom = int(max(0.0, (current_scale - 1.0) * 800))
+    root_container = ft.Container(
+        content=ft.ResponsiveRow([
+            ft.Column(col={"xs": 12, "sm": 10, "md": 6, "lg": 4}, controls=[form_card]),
+        ], alignment=ft.MainAxisAlignment.CENTER),
+        alignment=ft.alignment.center,
+        padding=ft.padding.only(left=20, right=20, top=20, bottom=20 + extra_bottom),
+        scale=ft.Scale(scale=current_scale, alignment=ft.alignment.top_center),
+    )
+
     return ft.View(
         "/",
-        controls=[
-            ft.Container(
-                content=ft.ResponsiveRow([
-                    ft.Column(col={"xs": 12, "sm": 10, "md": 6, "lg": 4}, controls=[form_card]),
-                ], alignment=ft.MainAxisAlignment.CENTER),
-                alignment=ft.alignment.center,
-                expand=True,
-                padding=20,
-            )
-        ],
+        scroll=ft.ScrollMode.AUTO,
+        controls=[root_container],
         vertical_alignment=ft.MainAxisAlignment.CENTER,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
     )

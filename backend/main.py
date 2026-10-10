@@ -14,7 +14,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
 from backend.database import engine, init_db
-from backend.routers import auth, regime, tracking, users
+from backend.routers import auth, diet, regime, tracking, users
 
 # SlowAPI Rate Limiter Initialization
 limiter = Limiter(
@@ -67,6 +67,7 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(tracking.router)
 app.include_router(regime.router)
+app.include_router(diet.router)
 
 
 @app.get("/health", tags=["System"], summary="API Health Check")

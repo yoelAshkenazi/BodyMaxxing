@@ -7,18 +7,24 @@ def get_adaptive_nav(page: ft.Page, selected_index: int) -> ft.Control:
     """Returns an adaptive bottom NavigationBar or desktop NavigationRail based on viewport dimensions."""
     destinations = [
         ft.NavigationBarDestination(icon=ft.icons.SHOW_CHART, label="Dashboard"),
+        ft.NavigationBarDestination(icon=ft.icons.RESTAURANT, label="Diet"),
         ft.NavigationBarDestination(icon=ft.icons.SETTINGS, label="Settings"),
         ft.NavigationBarDestination(icon=ft.icons.LOGOUT, label="Sign Out"),
     ]
 
-    def on_nav_change(e: ft.ControlEvent) -> None:
+    async def on_nav_change(e: ft.ControlEvent) -> None:
         idx = e.control.selected_index
         if idx == 0:
             page.go("/dashboard")
         elif idx == 1:
-            page.go("/settings")
+            page.go("/diet")
         elif idx == 2:
-            page.client_storage.remove("token")
+            page.go("/settings")
+        elif idx == 3:
+            if hasattr(page.client_storage, "remove_async"):
+                await page.client_storage.remove_async("token")
+            else:
+                page.client_storage.remove("token")
             page.go("/")
 
     return ft.NavigationBar(
@@ -30,14 +36,19 @@ def get_adaptive_nav(page: ft.Page, selected_index: int) -> ft.Control:
 
 def get_desktop_rail(page: ft.Page, selected_index: int) -> ft.NavigationRail:
     """Returns a persistent NavigationRail for wide desktop viewports."""
-    def on_rail_change(e: ft.ControlEvent) -> None:
+    async def on_rail_change(e: ft.ControlEvent) -> None:
         idx = e.control.selected_index
         if idx == 0:
             page.go("/dashboard")
         elif idx == 1:
-            page.go("/settings")
+            page.go("/diet")
         elif idx == 2:
-            page.client_storage.remove("token")
+            page.go("/settings")
+        elif idx == 3:
+            if hasattr(page.client_storage, "remove_async"):
+                await page.client_storage.remove_async("token")
+            else:
+                page.client_storage.remove("token")
             page.go("/")
 
     return ft.NavigationRail(
@@ -52,6 +63,11 @@ def get_desktop_rail(page: ft.Page, selected_index: int) -> ft.NavigationRail:
                 icon=ft.icons.SHOW_CHART_OUTLINED,
                 selected_icon=ft.icons.SHOW_CHART,
                 label="Dashboard",
+            ),
+            ft.NavigationRailDestination(
+                icon=ft.icons.RESTAURANT_OUTLINED,
+                selected_icon=ft.icons.RESTAURANT,
+                label="Diet",
             ),
             ft.NavigationRailDestination(
                 icon=ft.icons.SETTINGS_OUTLINED,

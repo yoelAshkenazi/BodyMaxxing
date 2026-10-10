@@ -113,10 +113,55 @@ BODYMAXXING PROJECT UPDATES & CHANGELOG
 - Verified: Both `uvicorn backend.main:app --reload --port 8000` and `flet run frontend/main.py` now run cleanly and pass all 44 unit and integration tests.
 ======================================================================
 
+[2026-10-10] Fix: Async Client Storage, Zoom/Scroll Readability & Desktop Launcher
+- Resolved Issue 1 (Account registry "Timeout waiting InvokeMethod clientStorage" error):
+  * Root Cause: Calling synchronous `page.client_storage.set()` within asynchronous event handlers blocked the asyncio thread waiting on `threading.Event`, preventing Flet's underlying WebSocket event loop from receiving the bridge response.
+  * Fix: Migrated to non-blocking `await page.client_storage.set_async()` in `frontend/views/login.py` and `await page.client_storage.remove_async()` in `frontend/components/navigation.py`.
+- Resolved Issue 2 (Page sizing, scrollability, and zoomability):
+  * Configured default desktop window dimensions (1200x850, min 800x600, resizable=True) in `frontend/main.py`.
+  * Enabled `scroll=ft.ScrollMode.AUTO` across all views (`login_view`, `dashboard_view`, `settings_view`) to eliminate viewport clipping.
+  * Implemented `frontend/components/zoom.py` providing interactive on-screen zoom toolbars (`[-]`, `[+]`, `[Reset]`), dynamic scale transformation, responsive extra padding, and global keyboard shortcuts (`Ctrl +`, `Ctrl -`, `Ctrl 0`).
+- Resolved Issue 3 (Clickable launcher):
+  * Created `run_frontend.bat` in the workspace root with automated Conda environment activation (`BMEnv`) and graceful fallback execution.
+- Verified: All 45 unit and integration tests passing.
+======================================================================
 
+[2026-10-10] Fix: AI Regimen 502 Resolution & Dedicated Diet Blueprint Page
+- Resolved Issue 1 (AI regimen generation 502 Bad Gateway):
+  * Root Cause: When AI_MODEL is unconfigured or no OPENAI_API_KEY is present in the environment, pydantic_ai raised UserError: Set the OPENAI_API_KEY environment variable..., which bubbled to HTTP 502 in backend/routers/regime.py.
+  * Fix: In backend/agent.py, implemented graceful evidence-based sports science fallback (_synthesize_deterministic_regimen) strictly compliant with RegimePlanResponse (exact caloric bounds within +/- 500 kcal of TDEE, 1.6g-2.4g/kg protein, training splits, and targeted exercise selections with RPE). Live LLM calls continue to be utilized whenever keys are provided.
+- Feature: Dedicated Diet Blueprint Page (/diet):
+  * Implemented calculate_diet_macronutrients and generate_recipes_by_meal_style in backend/calculations.py.
+  * Implemented backend/routers/diet.py exposing POST /api/diet/calculate and GET /api/diet/me.
+  * Built frontend/views/diet.py featuring:
+    - Interactive BMR/TDEE and macronutrient calculator (Calories, Protein, Fat, Carbohydrates) for maintenance, deficit, and surplus goals.
+    - Meal frequency selector: 1 Meal a Day (OMAD), 2 Meals a Day (Intermittent Fasting 16:8), and 3 Meals a Day (Classic Athletic).
+    - Meal plan breakdown with structured recipes, ingredient quantities, cooking instructions, and macro distribution.
+    - High-protein functional snacks (Greek yogurt bowls, etc.) and performance hydration elixirs (electrolytes, matcha focus surge).
+    - Full scrollability (scroll=ft.ScrollMode.AUTO), zoom toolbar, and adaptive layout.
+  * Added Diet tab to navigation bar and desktop rail in frontend/components/navigation.py.
+- Verified: All 50 unit and integration tests passing.
+======================================================================
 
-
-
-
+[2026-10-10] Feature: Cross-Module Plan Synchronization & Active Plan Tracking
+- Cross-Module Integration 1 (New User Onboarding to Settings):
+  * Newly registered users or users without an active plan are automatically routed to `/settings`.
+  * Caches authenticated user profile from `/api/users/me` (or registration payload) into `page.client_storage` ("user_profile").
+  * Pre-fills anthropometric metrics (Age, Height, Weight, Body Fat %, Goals) in `settings_view`.
+  * Automatically synthesizes and renders an initial evidence-based training regimen blueprint on first load.
+- Cross-Module Integration 2 (Interactive Regimen Customization & Focused Splits):
+  * Added `RegimeGenerateRequest` schema DTO in `backend/models.py` supporting `split_focus`, `selected_exercises`, and `unselected_exercises`.
+  * Updated `backend/routers/regime.py` and `backend/agent.py` to synthesize tailored regimens respecting constraints and specialized training splits (Full Body, PPL, Upper/Lower, Bench Press Specialization, Squat & Leg Hypertrophy).
+  * Interactive `ft.Checkbox` list in `frontend/views/settings.py` allowing athletes to retain or substitute specific lifts.
+  * "Re-generate with Selected & Focus" button triggers re-synthesis respecting constraints, while "Set as Active Plan & Go to Dashboard" persists `active_regime_plan` to client storage.
+- Cross-Module Integration 3 (Dashboard Tracking for Active Regimen & Diet):
+  * Updated `frontend/views/dashboard.py` to bind to `active_regime_plan` and `active_diet_plan`.
+  * Active Regimen Prescriptions Card: lists prescribed lifts, target sets × reps @ RPE, completion status badges, quick "Select" shortcuts, and a daily regimen completion progress bar.
+  * Synchronized Strength Trendline Chart: dropdown automatically populates with active prescribed exercises, fetching historical logs and regression forecasts.
+  * Active Nutrition Progress Card: tracks daily calories and protein against active plan targets with visual progress bars, quick-log increments (+30g Protein Shake, +500 kcal Meal, +750 kcal Heavy Meal), custom intake entry, and daily reset.
+- Verification & Test Coverage:
+  * Added 4 new tests across `tests/test_agent.py` and `tests/test_frontend.py`.
+  * Total suite: 54 tests passing (100% pass rate) with zero regressions across backend and frontend.
+======================================================================
 
 

@@ -13,12 +13,16 @@ import flet as ft
 
 try:
     from frontend.components.theme import get_app_theme
+    from frontend.components.zoom import handle_keyboard_zoom
     from frontend.views.dashboard import dashboard_view
+    from frontend.views.diet import diet_view
     from frontend.views.login import login_view
     from frontend.views.settings import settings_view
 except ModuleNotFoundError:
     from components.theme import get_app_theme
+    from components.zoom import handle_keyboard_zoom
     from views.dashboard import dashboard_view
+    from views.diet import diet_view
     from views.login import login_view
     from views.settings import settings_view
 
@@ -31,6 +35,20 @@ def main(page: ft.Page) -> None:
     page.theme_mode = ft.ThemeMode.SYSTEM
     page.theme = get_app_theme()
 
+    # Configure desktop window geometry for optimal readability and responsive layout
+    try:
+        page.window.width = 1200
+        page.window.height = 850
+        page.window.min_width = 800
+        page.window.min_height = 600
+        page.window.resizable = True
+    except Exception:
+        pass
+    page.scroll = ft.ScrollMode.AUTO
+
+    # Global keyboard zoom listeners (Ctrl +, Ctrl -, Ctrl 0)
+    page.on_keyboard_event = lambda e: handle_keyboard_zoom(page, e)
+
     def route_change(e: ft.RouteChangeEvent) -> None:
         page.views.clear()
         route = page.route or "/"
@@ -39,6 +57,8 @@ def main(page: ft.Page) -> None:
             page.views.append(login_view(page))
         elif route == "/dashboard":
             page.views.append(dashboard_view(page))
+        elif route == "/diet":
+            page.views.append(diet_view(page))
         elif route == "/settings":
             page.views.append(settings_view(page))
         else:
@@ -55,10 +75,14 @@ def main(page: ft.Page) -> None:
     page.on_route_change = route_change
     page.on_view_pop = view_pop
 
-    # Route to dashboard if authenticated token exists, else login
+    # Route to dashboard if authenticated token and active plan exist, else settings or login
     token = page.client_storage.get("token")
     if token:
-        page.go("/dashboard")
+        has_plan = page.client_storage.get("has_active_plan")
+        if has_plan:
+            page.go("/dashboard")
+        else:
+            page.go("/settings")
     else:
         page.go("/")
 

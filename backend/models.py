@@ -80,6 +80,22 @@ class RegimePlanResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class RegimeGenerateRequest(BaseModel):
+    """Payload specifying user constraints and preferences for regimen generation/refinement."""
+    split_focus: Optional[str] = PydanticField(
+        default=None,
+        description="Preferred split, e.g. Full Body, Push/Pull/Legs, Upper/Lower, Bench Specialization",
+    )
+    selected_exercises: List[str] = PydanticField(
+        default_factory=list,
+        description="Prescribed exercises the user wants to keep",
+    )
+    unselected_exercises: List[str] = PydanticField(
+        default_factory=list,
+        description="Prescribed exercises the user wants to replace with alternatives",
+    )
+
+
 # -------------------------------------------------------------------------
 # Request / Response DTOs
 # -------------------------------------------------------------------------

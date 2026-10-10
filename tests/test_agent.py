@@ -153,3 +153,76 @@ async def test_regime_api_agent_failure(regime_app_and_client, monkeypatch) -> N
     res = await client.post("/api/regime/generate", headers=headers)
     assert res.status_code == status.HTTP_502_BAD_GATEWAY
     assert "OpenAI rate limit exceeded" in res.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_deterministic_regimen_constraints_split() -> None:
+    from backend.agent import _synthesize_deterministic_regimen
+    from backend.models import RegimeGenerateRequest
+
+    user = UserBase(
+        email="athlete@example.com",
+        age=26,
+        gender="male",
+        height_cm=180.0,
+        weight_kg=80.0,
+        free_text_goals="Bench press power",
+    )
+
+    req_bench = RegimeGenerateRequest(
+        split_focus="Bench Press Specialization",
+        selected_exercises=["Barbell Incline Press"],
+        unselected_exercises=["Barbell Back Squat"],
+    )
+    plan_bench = _synthesize_deterministic_regimen(user, calculated_tdee=2500.0, constraints=req_bench)
+    assert any("Bench" in day for day in plan_bench.training_split)
+    ex_names = [e["exercise"] for e in plan_bench.exercise_selection]
+    assert "Barbell Incline Press" in ex_names
+    assert "Barbell Back Squat" not in ex_names
+
+    req_ppl = RegimeGenerateRequest(split_focus="Push / Pull / Legs (PPL)")
+    plan_ppl = _synthesize_deterministic_regimen(user, calculated_tdee=2500.0, constraints=req_ppl)
+    assert any("Push" in day for day in plan_ppl.training_split)
+
+    req_legs = RegimeGenerateRequest(split_focus="Squat & Leg Hypertrophy")
+    plan_legs = _synthesize_deterministic_regimen(user, calculated_tdee=2500.0, constraints=req_legs)
+    assert any("Squat" in day for day in plan_legs.training_split)
+
+
+@pytest.mark.asyncio
+async def test_regime_api_endpoint_with_constraints(regime_app_and_client) -> None:
+    client, session_factory = regime_app_and_client
+    user_id = uuid.uuid4()
+
+    async with session_factory() as session:
+        session.add(
+            User(
+                id=user_id,
+                email="split_user@example.com",
+                age=24,
+                gender="male",
+                height_cm=175.0,
+                weight_kg=75.0,
+                hashed_password="hash",
+            )
+        )
+        await session.commit()
+
+    token = create_access_token(user_id=user_id, email="split_user@example.com")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    payload = {
+        "split_focus": "Push / Pull / Legs (PPL)",
+        "selected_exercises": ["Barbell Incline Press"],
+        "unselected_exercises": ["Barbell Back Squat"],
+    }
+    # Deterministic fallback execution without remote API key
+    res = await client.post("/api/regime/generate", json=payload, headers=headers)
+    assert res.status_code == status.HTTP_200_OK
+    data = res.json()
+    assert "training_split" in data
+    assert any("Push" in s for s in data["training_split"])
+    ex_names = [e.get("exercise") for e in data["exercise_selection"]]
+    assert "Barbell Incline Press" in ex_names
+    assert "Barbell Back Squat" not in ex_names
+
